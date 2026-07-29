@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SweetSlice — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --cream: #FAF6F0;
+    --pink: #F7C5D4;
+    --pink-deep: #E58AA5;
+    --pink-pale: #FDF2F5;
+    --lavender: #D3C3EE;
+    --lavender-pale: #F6F2FC;
+    --plum-dark: #2D1F33;
+    --plum: #5C4567;
+    --plum-light: #8E7A99;
+    --white: #FFFFFF;
+    --danger: #E05263;
+    --ok: #2E8B57;
+    --glass-border: rgba(229, 138, 165, 0.18);
+    --shadow-soft: 0 10px 30px rgba(45, 31, 51, 0.06);
+    --shadow-hover: 0 18px 40px rgba(45, 31, 51, 0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+    background: var(--lavender-pale);
+    color: var(--plum-dark);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .serif { font-family: 'Playfair Display', serif; font-style: italic; }
+  input, select, textarea { font-family: 'Plus Jakarta Sans', sans-serif; outline: none; }
+
+  /* LOGIN */
+  .login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+    background: radial-gradient(circle at 50% 40%, #FFF5F7 0%, var(--lavender-pale) 75%);
+  }
+  .login-card {
+    background: var(--white); border-radius: 28px; padding: 44px 38px;
+    max-width: 400px; width: 100%; box-shadow: var(--shadow-hover);
+    text-align: center; border: 1px solid var(--glass-border);
+  }
+  .login-card .logo {
+    font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600;
+    font-size: 26px; color: var(--plum-dark); margin-bottom: 6px; letter-spacing: -0.3px;
+  }
+  .login-card .sub { font-size: 13px; color: var(--plum-light); margin-bottom: 28px; }
+  .field { margin-bottom: 18px; text-align: left; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--plum); margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #E5D8E8;
+    background: var(--cream); font-size: 14px; color: var(--plum-dark); transition: all .25s ease;
+  }
+  .field input:focus { border-color: var(--pink-deep); box-shadow: 0 0 0 4px rgba(229, 138, 165, 0.18); background: var(--white); }
+  .btn {
+    background: linear-gradient(135deg, var(--plum-dark) 0%, #432E4B 100%);
+    color: var(--cream); border: none; padding: 13px 24px; border-radius: 26px;
+    font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+    box-shadow: 0 6px 18px rgba(45, 31, 51, 0.18); transition: all .25s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(45, 31, 51, 0.28); }
+  .btn.outline { background: transparent; border: 1.5px solid var(--plum-dark); color: var(--plum-dark); box-shadow: none; }
+  .btn.outline:hover { background: var(--plum-dark); color: var(--cream); }
+  .btn.danger { background: linear-gradient(135deg, #E05263 0%, #C93B4C 100%); color: #fff; }
+  .btn.small { padding: 8px 16px; font-size: 12.5px; width: auto; }
+  .error-msg { color: var(--danger); font-size: 12.5px; font-weight: 600; margin-top: 12px; display: none; }
+  .setup-note {
+    font-size: 11.5px; color: var(--plum-light); margin-top: 24px; line-height: 1.7;
+    background: var(--pink-pale); padding: 14px 16px; border-radius: 14px; text-align: left;
+    border: 1px solid var(--glass-border);
+  }
+
+  /* APP SHELL */
+  .app { display: none; }
+  .app.visible { display: block; }
+  header.top {
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px);
+    padding: 20px 6%; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(45, 31, 51, 0.05); position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  header.top .logo { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600; font-size: 21px; color: var(--plum-dark); }
+  .tabs { display: flex; gap: 10px; padding: 24px 6% 0; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 10px 22px; border-radius: 24px; border: 1.5px solid #DECFE0;
+    background: var(--white); font-size: 13.5px; font-weight: 600; color: var(--plum);
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 2px 8px rgba(45, 31, 51, 0.03);
+  }
+  .tab-btn:hover { border-color: var(--pink-deep); color: var(--plum-dark); transform: translateY(-2px); }
+  .tab-btn.active { background: var(--plum-dark); color: var(--cream); border-color: var(--plum-dark); box-shadow: 0 6px 18px rgba(45, 31, 51, 0.2); }
+  main { padding: 28px 6% 80px; max-width: 1140px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+  .panel-head h2 { font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: var(--plum-dark); }
+
+  .card-list { display: grid; gap: 16px; }
+  .item-card {
+    background: var(--white); border-radius: 18px; padding: 22px 24px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    box-shadow: var(--shadow-soft); border: 1px solid var(--glass-border); flex-wrap: wrap;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .item-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .item-card .info h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--plum-dark); }
+  .item-card .info p { font-size: 13px; color: var(--plum-light); margin-bottom: 4px; line-height: 1.5; }
+  .item-card .badge { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 14px; margin-top: 8px; }
+  .badge.active { background: #E6F7EC; color: #2E8B57; }
+  .badge.inactive { background: #FDE8E8; color: #D93838; }
+  .item-actions { display: flex; gap: 10px; }
+  .icon-btn {
+    border: none; background: var(--pink-pale); color: var(--plum-dark);
+    padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    transition: all .2s ease;
+  }
+  .icon-btn:hover { background: var(--pink); transform: translateY(-2px); }
+  .icon-btn.del { background: #FDEEEE; color: var(--danger); }
+  .icon-btn.del:hover { background: #FCD6D6; }
+
+  .form-card {
+    background: var(--white); border-radius: 22px; padding: 30px;
+    margin-bottom: 28px; box-shadow: var(--shadow-soft); border: 1px solid var(--glass-border);
+  }
+  .form-card label { display: block; font-size: 12.5px; font-weight: 600; color: var(--plum); margin-bottom: 6px; }
+  .form-card input, .form-card select, .form-card textarea {
+    width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #E5D8E8;
+    background: var(--cream); font-size: 13.5px; color: var(--plum-dark); transition: all .25s ease;
+  }
+  .form-card input:focus, .form-card select:focus, .form-card textarea:focus { border-color: var(--pink-deep); box-shadow: 0 0 0 4px rgba(229, 138, 165, 0.18); background: var(--white); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid .full { grid-column: 1/-1; }
+  @media(max-width:700px) { .form-grid { grid-template-columns: 1fr; } .form-card { padding: 22px 18px; } }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--plum-light); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="logo">SweetSlice</div>
+    <div class="sub">Admin — owner access only</div>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+    <button class="btn" onclick="doLogin()">Log in</button>
+    <div class="error-msg" id="loginError">Wrong email or password.</div>
+    <div class="setup-note">
+      First time here? This panel uses Supabase Auth, so before it works you need to:<br>
+      1. Fill in <code>SUPABASE_URL</code> / <code>SUPABASE_ANON_KEY</code> in this file (and in the main site file) with your project's values.<br>
+      2. In Supabase Dashboard → Authentication → Users, create one user for yourself — that's the only account that can log in here.<br>
+      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, and <code>custom_requests</code> tables (ask me for the SQL any time).<br>
+      4. In Storage, create a bucket called <code>product-images</code>, set it to Public, so cake photos you upload here can show on the main site.
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <header class="top">
+    <div class="logo">SweetSlice · Admin</div>
+    <button class="btn outline small" onclick="doLogout()">Log out</button>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products" onclick="setTab('products')">Cakes &amp; products</button>
+    <button class="tab-btn" data-tab="reviews" onclick="setTab('reviews')">Reviews</button>
+    <button class="tab-btn" data-tab="orders" onclick="setTab('orders')">Orders</button>
+  </div>
+
+  <main>
+    <!-- PRODUCTS -->
+    <section class="panel active" id="panel-products">
+      <div class="form-card">
+        <div class="panel-head"><h2 id="productFormTitle">Add a product</h2></div>
+        <div class="form-grid">
+          <div><label>Name</label><input type="text" id="p-name" placeholder="e.g. Bento cake"></div>
+          <div><label>Category</label>
+            <select id="p-category">
+              <option value="cakes">Cakes</option>
+              <option value="cupcakes">Cupcakes</option>
+              <option value="pastries">Pastries</option>
+              <option value="brownies">Brownies</option>
+            </select>
+          </div>
+          <div><label>Price (Rs., 0 = "price on request")</label><input type="number" id="p-price" placeholder="1500"></div>
+          <div><label>Active on site?</label>
+            <select id="p-active"><option value="true">Yes</option><option value="false">No</option></select>
+          </div>
+          <div class="full"><label>Description</label><input type="text" id="p-description" placeholder="Single-serving, fully personalised"></div>
+          <div class="full">
+            <label>Cake photo</label>
+            <input type="file" id="p-image" accept="image/*" onchange="previewProductImage(this)">
+            <img id="p-image-preview" style="display:none;max-width:110px;border-radius:10px;margin-top:10px;">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn" style="width:auto;" onclick="saveProduct()">Save product</button>
+          <button class="btn outline" style="width:auto;display:none;" id="cancelEditBtn" onclick="cancelProductEdit()">Cancel edit</button>
+        </div>
+      </div>
+
+      <div class="panel-head"><h2>All products</h2></div>
+      <div class="card-list" id="productList"></div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section class="panel" id="panel-reviews">
+      <div class="form-card">
+        <div class="panel-head"><h2>Add a review</h2></div>
+        <div class="form-grid">
+          <div><label>Customer name</label><input type="text" id="r-name" placeholder="e.g. Ayesha"></div>
+          <div><label>City</label><input type="text" id="r-city" placeholder="Rawalpindi / Islamabad"></div>
+          <div class="full"><label>Quote</label><input type="text" id="r-quote" placeholder="What they said"></div>
+          <div><label>Show on site?</label>
+            <select id="r-approved"><option value="true">Yes</option><option value="false">No, keep hidden</option></select>
+          </div>
+        </div>
+        <button class="btn" style="width:auto;margin-top:16px;" onclick="saveReview()">Save review</button>
+      </div>
+      <div class="panel-head"><h2>All reviews</h2></div>
+      <div class="card-list" id="reviewList"></div>
+    </section>
+
+    <!-- ORDERS -->
+    <section class="panel" id="panel-orders">
+      <div class="panel-head"><h2>Recent orders</h2></div>
+      <div class="card-list" id="orderList"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+  // ---- SUPABASE SETUP — use the SAME project as the main site ----
+  const SUPABASE_URL = "https://utphrlxlwtkhrywqgsir.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_6K8X6iAxo8e-HOPX2WI8Xg_62JYlZMX";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---- AUTH ----
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    document.getElementById('loginError').style.display = 'none';
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) { document.getElementById('loginError').style.display = 'block'; return; }
+    showApp();
+  }
+  async function doLogout() {
+    await supabaseClient.auth.signOut();
+    document.getElementById('app').classList.remove('visible');
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+  async function checkSession() {
+    const { data } = await supabaseClient.auth.getSession();
+    if (data.session) showApp();
+  }
+  function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    loadProducts(); loadReviews(); loadOrders();
+  }
+  checkSession();
+
+  // ---- TABS ----
+  function setTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+
+  // ---- PRODUCTS ----
+  let editingProductId = null;
+
+  async function loadProducts() {
+    const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+    const list = document.getElementById('productList');
+    if (error) { list.innerHTML = `<div class="empty-state">Couldn't load products — check your Supabase URL/key and that the "products" table exists.</div>`; return; }
+    if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state">No products yet — add your first one above.</div>`; return; }
+    list.innerHTML = data.map(p => `
+      <div class="item-card">
+        ${p.image_url ? `<img src="${p.image_url}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">` : ''}
+        <div class="info">
+          <h4>${p.name} — Rs. ${Number(p.price).toLocaleString()}</h4>
+          <p>${p.category} · ${p.description || ''}</p>
+          <span class="badge ${p.active ? 'active' : 'inactive'}">${p.active ? 'Active' : 'Hidden'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&apos;")})'>Edit</button>
+          <button class="icon-btn del" onclick="deleteProduct('${p.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  let editingProductImageUrl = null;
+  let pendingImageFile = null;
+
+  function previewProductImage(input) {
+    pendingImageFile = input.files[0] || null;
+    const preview = document.getElementById('p-image-preview');
+    if (pendingImageFile) {
+      const reader = new FileReader();
+      reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+      reader.readAsDataURL(pendingImageFile);
+    }
+  }
+
+  function editProduct(p) {
+    editingProductId = p.id;
+    editingProductImageUrl = p.image_url || null;
+    pendingImageFile = null;
+    document.getElementById('p-name').value = p.name;
+    document.getElementById('p-category').value = p.category;
+    document.getElementById('p-price').value = p.price;
+    document.getElementById('p-active').value = String(p.active);
+    document.getElementById('p-description').value = p.description || '';
+    const preview = document.getElementById('p-image-preview');
+    if (p.image_url) { preview.src = p.image_url; preview.style.display = 'block'; } else { preview.style.display = 'none'; }
+    document.getElementById('productFormTitle').textContent = 'Edit product';
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function cancelProductEdit() {
+    editingProductId = null;
+    editingProductImageUrl = null;
+    pendingImageFile = null;
+    ['p-name','p-price','p-description'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('p-image').value = '';
+    document.getElementById('p-image-preview').style.display = 'none';
+    document.getElementById('productFormTitle').textContent = 'Add a product';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+  }
+
+  async function saveProduct() {
+    let imageUrl = editingProductImageUrl;
+    if (pendingImageFile) {
+      const fileName = `${Date.now()}-${pendingImageFile.name}`;
+      const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(fileName, pendingImageFile);
+      if (uploadError) {
+        alert("Couldn't upload the photo — check that the 'product-images' storage bucket exists and is set up (see setup notes). Saving the rest of the product without a photo.");
+      } else {
+        const { data: urlData } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
+        imageUrl = urlData.publicUrl;
+      }
+    }
+    const payload = {
+      name: document.getElementById('p-name').value.trim(),
+      category: document.getElementById('p-category').value,
+      price: Number(document.getElementById('p-price').value) || 0,
+      active: document.getElementById('p-active').value === 'true',
+      description: document.getElementById('p-description').value.trim(),
+      image_url: imageUrl,
+      icon: 'a'
+    };
+    if (!payload.name) return;
+    if (editingProductId) {
+      const { error: saveError } = await supabaseClient.from('products').update(payload).eq('id', editingProductId);
+      if (saveError) { alert("Couldn't save the product: " + saveError.message); return; }
+    } else {
+      const { error: saveError } = await supabaseClient.from('products').insert(payload);
+      if (saveError) { alert("Couldn't save the product: " + saveError.message); return; }
+    }
+    cancelProductEdit();
+    loadProducts();
+  }
+  async function deleteProduct(id) {
+    if (!confirm('Delete this product?')) return;
+    await supabaseClient.from('products').delete().eq('id', id);
+    loadProducts();
+  }
+
+  // ---- REVIEWS ----
+  async function loadReviews() {
+    const { data, error } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
+    const list = document.getElementById('reviewList');
+    if (error) { list.innerHTML = `<div class="empty-state">Couldn't load reviews — check that the "reviews" table exists.</div>`; return; }
+    if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state">No reviews yet.</div>`; return; }
+    list.innerHTML = data.map(r => `
+      <div class="item-card">
+        <div class="info">
+          <h4>${r.author_name}${r.city ? ' — ' + r.city : ''}</h4>
+          <p>"${r.quote}"</p>
+          <span class="badge ${r.approved ? 'active' : 'inactive'}">${r.approved ? 'Visible on site' : 'Hidden'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn del" onclick="deleteReview('${r.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+  async function saveReview() {
+    const payload = {
+      author_name: document.getElementById('r-name').value.trim(),
+      city: document.getElementById('r-city').value.trim(),
+      quote: document.getElementById('r-quote').value.trim(),
+      approved: document.getElementById('r-approved').value === 'true'
+    };
+    if (!payload.author_name || !payload.quote) return;
+    const { error: saveError } = await supabaseClient.from('reviews').insert(payload);
+    if (saveError) { alert("Couldn't save the review: " + saveError.message); return; }
+    ['r-name','r-city','r-quote'].forEach(id => document.getElementById(id).value = '');
+    loadReviews();
+  }
+  async function deleteReview(id) {
+    if (!confirm('Delete this review?')) return;
+    await supabaseClient.from('reviews').delete().eq('id', id);
+    loadReviews();
+  }
+
+  // ---- ORDERS (read-only) ----
+  async function loadOrders() {
+    const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(50);
+    const list = document.getElementById('orderList');
+    if (error) { list.innerHTML = `<div class="empty-state">Couldn't load orders — check that the "orders" table exists.</div>`; return; }
+    if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state">No orders yet.</div>`; return; }
+    list.innerHTML = data.map(o => `
+      <div class="item-card">
+        <div class="info">
+          <h4>Rs. ${Number(o.total).toLocaleString()} — ${o.payment_method || 'whatsapp'}</h4>
+          <p>${(o.items || []).map(i => `${i.name} x${i.qty}`).join(', ')}</p>
+          <span class="badge ${o.status === 'pending' ? 'inactive' : 'active'}">${o.status}</span>
+        </div>
+      </div>`).join('');
+  }
+</script>
+
+</body>
+</html>
