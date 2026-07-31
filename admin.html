@@ -157,8 +157,8 @@
       First time here? This panel uses Supabase Auth, so before it works you need to:<br>
       1. Fill in <code>SUPABASE_URL</code> / <code>SUPABASE_ANON_KEY</code> in this file (and in the main site file) with your project's values.<br>
       2. In Supabase Dashboard → Authentication → Users, create one user for yourself — that's the only account that can log in here.<br>
-      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, and <code>custom_requests</code> tables (ask me for the SQL any time).<br>
-      4. In Storage, create a bucket called <code>product-images</code>, set it to Public, so cake photos you upload here can show on the main site.
+      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, <code>custom_requests</code>, and <code>gallery</code> tables (ask me for the SQL any time).<br>
+      4. In Storage, create two Public buckets: <code>product-images</code> and <code>gallery-images</code>, so photos you upload here can show on the main site.
     </div>
   </div>
 </div>
@@ -173,6 +173,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="products" onclick="setTab('products')">Cakes &amp; products</button>
     <button class="tab-btn" data-tab="reviews" onclick="setTab('reviews')">Reviews</button>
+    <button class="tab-btn" data-tab="gallery" onclick="setTab('gallery')">Gallery</button>
     <button class="tab-btn" data-tab="orders" onclick="setTab('orders')">Orders</button>
   </div>
 
@@ -230,6 +231,26 @@
       <div class="card-list" id="reviewList"></div>
     </section>
 
+    <!-- GALLERY -->
+    <section class="panel" id="panel-gallery">
+      <div class="form-card">
+        <div class="panel-head"><h2>Add a photo</h2></div>
+        <div class="form-grid">
+          <div><label>Category</label><input type="text" id="g-category" placeholder="e.g. Mehndi, Birthdays, Nikkah"></div>
+          <div><label>Caption (optional)</label><input type="text" id="g-caption" placeholder="e.g. Rose piping, single serve"></div>
+          <div class="full">
+            <label>Photo</label>
+            <input type="file" id="g-image" accept="image/*" onchange="previewGalleryImage(this)">
+            <img id="g-image-preview" style="display:none;max-width:110px;border-radius:10px;margin-top:10px;">
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:var(--plum-light);margin-top:6px;">Tip: use the same category spelling each time (e.g. always "Mehndi") so photos group together correctly on the site.</div>
+        <button class="btn" style="width:auto;margin-top:16px;" onclick="saveGalleryImage()">Add photo</button>
+      </div>
+      <div class="panel-head"><h2>All photos</h2></div>
+      <div class="card-list" id="galleryList"></div>
+    </section>
+
     <!-- ORDERS -->
     <section class="panel" id="panel-orders">
       <div class="panel-head"><h2>Recent orders</h2></div>
@@ -265,7 +286,7 @@
   function showApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    loadProducts(); loadReviews(); loadOrders();
+    loadProducts(); loadReviews(); loadGallery(); loadOrders();
   }
   checkSession();
 
@@ -411,6 +432,58 @@
     if (!confirm('Delete this review?')) return;
     await supabaseClient.from('reviews').delete().eq('id', id);
     loadReviews();
+  }
+
+  // ---- GALLERY ----
+  let pendingGalleryFile = null;
+  function previewGalleryImage(input) {
+    pendingGalleryFile = input.files[0] || null;
+    const preview = document.getElementById('g-image-preview');
+    if (pendingGalleryFile) {
+      const reader = new FileReader();
+      reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+      reader.readAsDataURL(pendingGalleryFile);
+    }
+  }
+  async function saveGalleryImage() {
+    const category = document.getElementById('g-category').value.trim();
+    const caption = document.getElementById('g-caption').value.trim();
+    if (!category) { alert('Please enter a category, like Mehndi or Birthdays.'); return; }
+    if (!pendingGalleryFile) { alert('Please choose a photo to upload.'); return; }
+    const fileName = `${Date.now()}-${pendingGalleryFile.name}`;
+    const { error: uploadError } = await supabaseClient.storage.from('gallery-images').upload(fileName, pendingGalleryFile);
+    if (uploadError) { alert("Couldn't upload the photo — check that the 'gallery-images' storage bucket exists (see setup notes). " + uploadError.message); return; }
+    const { data: urlData } = supabaseClient.storage.from('gallery-images').getPublicUrl(fileName);
+    const { error: saveError } = await supabaseClient.from('gallery').insert({ category, caption, image_url: urlData.publicUrl });
+    if (saveError) { alert("Couldn't save the photo: " + saveError.message); return; }
+    document.getElementById('g-category').value = '';
+    document.getElementById('g-caption').value = '';
+    document.getElementById('g-image').value = '';
+    document.getElementById('g-image-preview').style.display = 'none';
+    pendingGalleryFile = null;
+    loadGallery();
+  }
+  async function loadGallery() {
+    const { data, error } = await supabaseClient.from('gallery').select('*').order('created_at', { ascending: false });
+    const list = document.getElementById('galleryList');
+    if (error) { list.innerHTML = `<div class="empty-state">Couldn't load the gallery — check that the "gallery" table exists.</div>`; return; }
+    if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state">No photos yet — add your first one above.</div>`; return; }
+    list.innerHTML = data.map(g => `
+      <div class="item-card">
+        <img src="${g.image_url}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
+        <div class="info">
+          <h4>${g.category}</h4>
+          <p>${g.caption || ''}</p>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn del" onclick="deleteGalleryImage('${g.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+  async function deleteGalleryImage(id) {
+    if (!confirm('Delete this photo?')) return;
+    await supabaseClient.from('gallery').delete().eq('id', id);
+    loadGallery();
   }
 
   // ---- ORDERS (read-only) ----

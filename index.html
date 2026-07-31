@@ -303,11 +303,33 @@
   .gallery-section{padding:120px 8%;}
   .gallery-head{text-align:center;max-width:560px;margin:0 auto 46px;}
   .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;}
-  .gallery-card{background:var(--pink-pale);border-radius:16px;padding:26px;text-align:center;transition:transform .3s ease;}
+  .gallery-card{
+    background:var(--pink-pale);border-radius:16px;text-align:center;transition:transform .3s ease;
+    cursor:pointer;overflow:hidden;position:relative;
+  }
   .gallery-card:hover{transform:translateY(-5px);}
+  .gallery-card .gc-cover{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+  .gallery-card .gc-text{padding:16px 18px 20px;}
   .gallery-card h4{font-family:'Playfair Display',serif;font-style:italic;font-size:17px;color:var(--plum-dark);margin-bottom:4px;}
   .gallery-card p{font-size:12px;color:var(--plum-light);}
-  @media(max-width:800px){.gallery-grid{grid-template-columns:1fr;}}
+  @media(max-width:800px){.gallery-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:500px){.gallery-grid{grid-template-columns:1fr;}}
+
+  /* GALLERY LIGHTBOX */
+  .lightbox-overlay{
+    position:fixed;inset:0;background:rgba(45,31,51,0.7);z-index:399;opacity:0;pointer-events:none;
+    transition:opacity .3s ease;display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .lightbox-overlay.open{opacity:1;pointer-events:auto;}
+  .lightbox-box{
+    background:var(--white);border-radius:20px;max-width:900px;width:100%;max-height:88vh;overflow-y:auto;
+    padding:30px;position:relative;
+  }
+  .lightbox-box h3{font-family:'Playfair Display',serif;font-style:italic;font-size:24px;color:var(--plum-dark);margin-bottom:18px;}
+  .lightbox-close{position:absolute;top:22px;right:26px;font-size:16px;cursor:pointer;color:var(--plum);}
+  .lightbox-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .lightbox-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;}
+  @media(max-width:600px){.lightbox-grid{grid-template-columns:1fr 1fr;}}
 
   /* DELIVERY AREA — the only other place area is mentioned besides footer */
   .area-section{padding:100px 8%;text-align:center;background:var(--plum-dark);color:var(--cream);}
@@ -380,24 +402,6 @@
   .cart-actions{display:flex;flex-direction:column;gap:10px;}
   .cart-btn{width:100%;border:none;padding:14px;border-radius:26px;font-size:13.5px;font-weight:500;cursor:pointer;}
   .cart-btn.wa{background:#25D366;color:#fff;}
-  .cart-btn.card{background:var(--plum-dark);color:var(--cream);}
-
-  /* CHECKOUT MODAL */
-  .modal-overlay{position:fixed;inset:0;background:rgba(74,59,84,0.4);z-index:399;opacity:0;pointer-events:none;transition:opacity .3s ease;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .modal-overlay.open{opacity:1;pointer-events:auto;}
-  .checkout-modal{background:var(--white);border-radius:20px;max-width:420px;width:100%;padding:30px;max-height:90vh;overflow-y:auto;position:relative;}
-  .checkout-modal h3{font-family:'Playfair Display',serif;font-style:italic;font-size:21px;color:var(--plum-dark);margin-bottom:6px;}
-  .checkout-modal .sub{font-size:12.5px;color:var(--plum-light);margin-bottom:22px;line-height:1.6;}
-  .modal-close{position:absolute;top:20px;right:22px;font-size:16px;cursor:pointer;color:var(--plum);}
-  .pay-tabs{display:flex;gap:8px;margin-bottom:20px;}
-  .pay-tab{flex:1;text-align:center;padding:10px;border-radius:12px;border:1px solid #EADFE8;font-size:12.5px;color:var(--plum);cursor:pointer;}
-  .pay-tab.active{background:var(--plum-dark);color:var(--cream);border-color:var(--plum-dark);}
-  .form-row{margin-bottom:14px;}
-  .form-row label{display:block;font-size:12px;color:var(--plum);margin-bottom:6px;}
-  .form-row input{width:100%;padding:11px 14px;border-radius:10px;border:1px solid #EADFE8;background:var(--cream);font-family:'Poppins',sans-serif;font-size:13.5px;color:var(--plum-dark);}
-  .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .pay-note{font-size:11px;color:var(--plum-light);line-height:1.6;margin-top:10px;background:var(--pink-pale);padding:10px 12px;border-radius:10px;}
-  .pay-submit{width:100%;margin-top:16px;background:var(--plum-dark);color:var(--cream);border:none;padding:14px;border-radius:26px;font-size:14px;font-weight:500;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -516,15 +520,23 @@
     <div class="section-eyebrow">A few favourites</div>
     <div class="section-title">Recent slices</div>
   </div>
-  <div class="gallery-grid">
-    <div class="gallery-card reveal"><h4>Birthday bento</h4><p>Rose piping, single serve</p></div>
-    <div class="gallery-card reveal"><h4>Anniversary tier</h4><p>Two-layer, blush &amp; plum</p></div>
-    <div class="gallery-card reveal"><h4>Baby shower</h4><p>Lavender drip, custom topper</p></div>
-    <div class="gallery-card reveal"><h4>Office box</h4><p>Assorted cupcakes ×12</p></div>
-    <div class="gallery-card reveal"><h4>Nikkah cake</h4><p>Three-tier, floral detail</p></div>
-    <div class="gallery-card reveal"><h4>Kids' theme</h4><p>Hand-piped character design</p></div>
+  <div class="gallery-grid" id="gallery-grid">
+    <div class="gallery-card reveal"><div class="gc-text"><h4>Birthday bento</h4><p>Rose piping, single serve</p></div></div>
+    <div class="gallery-card reveal"><div class="gc-text"><h4>Anniversary tier</h4><p>Two-layer, blush &amp; plum</p></div></div>
+    <div class="gallery-card reveal"><div class="gc-text"><h4>Baby shower</h4><p>Lavender drip, custom topper</p></div></div>
+    <div class="gallery-card reveal"><div class="gc-text"><h4>Office box</h4><p>Assorted cupcakes ×12</p></div></div>
+    <div class="gallery-card reveal"><div class="gc-text"><h4>Nikkah cake</h4><p>Three-tier, floral detail</p></div></div>
+    <div class="gallery-card reveal"><div class="gc-text"><h4>Kids' theme</h4><p>Hand-piped character design</p></div></div>
   </div>
 </section>
+
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightboxOnBg(event)">
+  <div class="lightbox-box">
+    <span class="lightbox-close" onclick="closeLightbox()">Close ×</span>
+    <h3 id="lightbox-title">Category</h3>
+    <div class="lightbox-grid" id="lightbox-grid"></div>
+  </div>
+</div>
 
 <section class="area-section" id="area">
   <div class="section-eyebrow reveal">Where we deliver</div>
@@ -593,9 +605,8 @@
       </div>
       <p>Customized cakes and bento cakes, made with love — delivering within Rawalpindi and Islamabad.</p>
       <div class="pay-badges">
+        <span class="pay-badge">Order via WhatsApp</span>
         <span class="pay-badge">Cash on delivery</span>
-        <span class="pay-badge">Easypaisa</span>
-        <span class="pay-badge">Card</span>
       </div>
     </div>
     <div class="footer-col">
@@ -624,41 +635,11 @@
   <div class="cart-total" id="cart-total" style="display:none;"><span>Total</span><span id="cart-total-amt">Rs. 0</span></div>
   <div class="cart-actions" id="cart-actions" style="display:none;">
     <button class="cart-btn wa" onclick="checkoutWhatsApp()">Order via WhatsApp</button>
-    <button class="cart-btn card" onclick="openCheckout()">Pay by card / Easypaisa</button>
   </div>
 </div>
 <div class="cart-fab" onclick="toggleCart(true)">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFDF9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
   <span class="cart-count" id="cart-count" style="display:none;">0</span>
-</div>
-
-<div class="modal-overlay" id="checkout-overlay" onclick="closeCheckoutOnBg(event)">
-  <div class="checkout-modal">
-    <span class="modal-close" onclick="closeCheckout()">Close ×</span>
-    <h3>Complete your payment</h3>
-    <div class="sub">Total due: <strong id="modal-total">Rs. 0</strong></div>
-    <div class="pay-tabs">
-      <div class="pay-tab active" id="tab-card" onclick="setPayTab('card')">Card</div>
-      <div class="pay-tab" id="tab-easypaisa" onclick="setPayTab('easypaisa')">Easypaisa</div>
-    </div>
-
-    <div id="pay-card-fields">
-      <div class="form-row"><label>Name on card</label><input type="text" id="card-name" placeholder="Full name"></div>
-      <div class="form-row"><label>Card number</label><input type="text" id="card-number" placeholder="0000 0000 0000 0000" inputmode="numeric"></div>
-      <div class="form-grid-2">
-        <div class="form-row"><label>Expiry</label><input type="text" id="card-expiry" placeholder="MM/YY"></div>
-        <div class="form-row"><label>CVC</label><input type="text" id="card-cvc" placeholder="123" inputmode="numeric"></div>
-      </div>
-    </div>
-
-    <div id="pay-easypaisa-fields" style="display:none;">
-      <div class="form-row"><label>Easypaisa account number</label><input type="tel" id="ep-number" placeholder="03XXXXXXXXX"></div>
-      <div class="form-row"><label>Account title</label><input type="text" id="ep-title" placeholder="Full name"></div>
-    </div>
-
-    <div class="pay-note">This form isn't wired to a live payment processor yet — that requires connecting a licensed Pakistani gateway (Easypaisa merchant API, JazzCash, or a provider like Safepay/PayFast) on the backend. For now this collects the order + your details and confirms via WhatsApp, so nothing is charged here.</div>
-    <button class="pay-submit" onclick="submitCheckout()">Confirm order</button>
-  </div>
 </div>
 
 <script>
@@ -825,49 +806,6 @@
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
   }
 
-  // ---- CARD / EASYPAISA CHECKOUT (UI only — see note in modal) ----
-  let payTab = 'card';
-  function setPayTab(tab) {
-    payTab = tab;
-    document.getElementById('tab-card').classList.toggle('active', tab === 'card');
-    document.getElementById('tab-easypaisa').classList.toggle('active', tab === 'easypaisa');
-    document.getElementById('pay-card-fields').style.display = tab === 'card' ? 'block' : 'none';
-    document.getElementById('pay-easypaisa-fields').style.display = tab === 'easypaisa' ? 'block' : 'none';
-  }
-  function openCheckout() {
-    if (cart.length === 0) return;
-    const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
-    document.getElementById('modal-total').textContent = `Rs. ${total.toLocaleString()}`;
-    document.getElementById('checkout-overlay').classList.add('open');
-  }
-  function closeCheckout() { document.getElementById('checkout-overlay').classList.remove('open'); }
-  function closeCheckoutOnBg(e) { if (e.target.id === 'checkout-overlay') closeCheckout(); }
-
-  async function submitCheckout() {
-    const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
-    let details = '';
-    let paymentMethod = payTab;
-    if (payTab === 'card') {
-      const name = document.getElementById('card-name').value || 'Not provided';
-      details = `Payment method: Card%0AName on card: ${name}`;
-    } else {
-      const num = document.getElementById('ep-number').value || 'Not provided';
-      const title = document.getElementById('ep-title').value || 'Not provided';
-      details = `Payment method: Easypaisa%0AAccount: ${num}%0AAccount title: ${title}`;
-    }
-    // Note: we deliberately never send card number/expiry/CVC to Supabase or
-    // anywhere else — those fields exist only to fill in the WhatsApp message
-    // for now, since there's no real payment gateway wired in yet.
-    if (supabaseClient) {
-      await supabaseClient.from('orders').insert({ items: cart, total: total, payment_method: paymentMethod, status: 'pending' });
-    }
-    let msg = "Hi SweetSlice! I'd like to place an order and pay directly:%0A%0A";
-    cart.forEach(i => { msg += `${i.name} x${i.qty} - Rs. ${(i.price * i.qty).toLocaleString()}%0A`; });
-    msg += `%0ATotal: Rs. ${total.toLocaleString()}%0A%0A${details}%0A%0AMy delivery address:%0AMy preferred date:`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
-    closeCheckout();
-  }
-
   // ---- CUSTOM CAKE REQUEST ----
   const dateInput = document.getElementById('c-date');
   if (dateInput) {
@@ -931,6 +869,46 @@
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
   }
+
+  // ---- GALLERY ----
+  let GALLERY_GROUPS = {};
+  async function loadGallery() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('gallery').select('*').order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) return; // keep the static fallback cards already in the HTML
+
+    GALLERY_GROUPS = {};
+    data.forEach(g => {
+      if (!GALLERY_GROUPS[g.category]) GALLERY_GROUPS[g.category] = [];
+      GALLERY_GROUPS[g.category].push(g);
+    });
+
+    const grid = document.getElementById('gallery-grid');
+    grid.innerHTML = Object.keys(GALLERY_GROUPS).map(category => {
+      const items = GALLERY_GROUPS[category];
+      const cover = items[0].image_url;
+      const count = items.length;
+      return `
+        <div class="gallery-card reveal in" onclick="openLightbox('${category.replace(/'/g, "\\'")}')">
+          <img class="gc-cover" src="${cover}" alt="${category}">
+          <div class="gc-text"><h4>${category}</h4><p>${count} photo${count > 1 ? 's' : ''}</p></div>
+        </div>`;
+    }).join('');
+  }
+
+  function openLightbox(category) {
+    const items = GALLERY_GROUPS[category];
+    if (!items) return;
+    document.getElementById('lightbox-title').textContent = category;
+    document.getElementById('lightbox-grid').innerHTML = items.map(g =>
+      `<img src="${g.image_url}" alt="${g.caption || category}" title="${g.caption || ''}">`
+    ).join('');
+    document.getElementById('lightbox-overlay').classList.add('open');
+  }
+  function closeLightbox() { document.getElementById('lightbox-overlay').classList.remove('open'); }
+  function closeLightboxOnBg(e) { if (e.target.id === 'lightbox-overlay') closeLightbox(); }
+
+  loadGallery();
 
   // ---- TESTIMONIALS ----
   async function loadTestimonial() {
