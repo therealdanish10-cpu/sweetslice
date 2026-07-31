@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery | SweetSlice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --cream:#FFFDF9; --pink:#F4B8CC; --pink-deep:#EDA0BC; --pink-pale:#FDF0F5;
+    --lavender:#C9B6E4; --lavender-pale:#F3EEFA; --plum-dark:#4A3B54; --plum:#6B5876;
+    --plum-light:#9a8a9e; --white:#FFFFFF;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--plum-dark);}
+  a{text-decoration:none;color:inherit;}
+
+  header{
+    padding:26px 6%;display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--pink-pale);
+  }
+  .back-link{font-size:13.5px;color:var(--plum);display:flex;align-items:center;gap:6px;}
+  .back-link:hover{color:var(--plum-dark);}
+  .nav-logo{display:flex;align-items:center;gap:10px;}
+  .nav-logo svg{width:34px;height:34px;}
+  .nav-logo span{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:18px;}
+
+  main{padding:60px 6% 100px;max-width:1100px;margin:0 auto;}
+  .page-title{
+    font-family:'Playfair Display',serif;font-style:italic;font-weight:600;
+    font-size:clamp(28px,4vw,42px);color:var(--plum-dark);margin-bottom:8px;text-align:center;
+  }
+  .page-sub{text-align:center;color:var(--plum-light);font-size:13.5px;margin-bottom:50px;}
+
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;}
+  .photo-card{border-radius:16px;overflow:hidden;background:var(--pink-pale);box-shadow:0 6px 20px rgba(74,59,84,0.06);}
+  .photo-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+  .photo-caption{padding:12px 16px;font-size:12.5px;color:var(--plum-light);}
+
+  .empty-state{text-align:center;padding:80px 20px;color:var(--plum-light);font-size:14px;}
+  .empty-state a{color:var(--pink-deep);font-weight:500;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="nav-logo" href="index.html">
+    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#F4B8CC"/><path d="M32,66 L68,66 L50,30 Z" fill="#FFFDF9"/><path d="M32,66 Q50,78 68,66" fill="none" stroke="#C9B6E4" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="52" x2="58" y2="52" stroke="#EDA0BC" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="34" r="3.5" fill="#C9B6E4"/></svg>
+    <span>SweetSlice</span>
+  </a>
+  <a class="back-link" href="index.html#gallery">← Back to site</a>
+</header>
+
+<main>
+  <div class="page-title" id="page-title">Gallery</div>
+  <div class="page-sub" id="page-sub"></div>
+  <div class="photo-grid" id="photo-grid"></div>
+</main>
+
+<script>
+  const SUPABASE_URL = "https://utphrlxlwtkhrywqgsir.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_6K8X6iAxo8e-HOPX2WI8Xg_62JYlZMX";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get('category') || '';
+
+  async function loadCategory() {
+    document.getElementById('page-title').textContent = category || 'Gallery';
+    const grid = document.getElementById('photo-grid');
+
+    if (!category) {
+      grid.innerHTML = '';
+      document.getElementById('page-sub').textContent = '';
+      document.querySelector('main').insertAdjacentHTML('beforeend', `<div class="empty-state">No category selected — <a href="index.html#gallery">go back to the gallery</a>.</div>`);
+      return;
+    }
+
+    const { data, error } = await supabaseClient.from('gallery').select('*').eq('category', category).order('created_at', { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      document.getElementById('page-sub').textContent = '';
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No photos found for "${category}" — <a href="index.html#gallery">go back to the gallery</a>.</div>`;
+      return;
+    }
+
+    document.getElementById('page-sub').textContent = `${data.length} photo${data.length > 1 ? 's' : ''}`;
+    grid.innerHTML = data.map(g => `
+      <div class="photo-card">
+        <img src="${g.image_url}" alt="${g.caption || category}">
+        ${g.caption ? `<div class="photo-caption">${g.caption}</div>` : ''}
+      </div>`).join('');
+  }
+  loadCategory();
+</script>
+
+</body>
+</html>
