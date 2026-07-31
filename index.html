@@ -401,7 +401,7 @@
     <a href="#gallery">Gallery</a>
     <a href="#contact">Contact</a>
   </div>
-  <a class="nav-cta" href="https://wa.me/923469377256" target="_blank">Order on WhatsApp</a>
+  <a class="nav-cta" href="https://wa.me/923362225188" target="_blank">Order on WhatsApp</a>
 </nav>
 
 <section class="hero">
@@ -415,7 +415,7 @@
   <h1 class="reveal in">Cakes made for one person, one moment</h1>
   <p class="reveal in">Custom cakes and bento cakes for birthdays, weddings, and everything in between.</p>
   <div class="hero-buttons reveal in">
-    <a class="btn-primary" href="https://wa.me/923469377256" target="_blank">Order on WhatsApp →</a>
+    <a class="btn-primary" href="https://wa.me/923362225188" target="_blank">Order on WhatsApp →</a>
     <a class="btn-secondary" href="#shop">See the menu</a>
   </div>
   <svg class="hero-visual reveal in" viewBox="0 0 200 200"><rect x="55" y="110" width="90" height="60" rx="8" fill="#F4B8CC"/><rect x="68" y="82" width="64" height="30" rx="8" fill="#FDF0F5"/><ellipse cx="100" cy="82" rx="32" ry="10" fill="#fff"/><circle cx="100" cy="62" r="7" fill="#C9B6E4"/></svg>
@@ -466,8 +466,8 @@
     </div>
     <div class="astep" data-step="4">
       <div class="tag">Step four</div>
-      <h3>Delivered fresh</h3>
-      <p>Baked, decorated, and delivered right on time, ready to celebrate with.</p>
+      <h3>Ready for pickup</h3>
+      <p>Baked and decorated, ready right on time at our Chakri Road location — book your own ride, or let us help arrange one.</p>
     </div>
   </div>
 </section>
@@ -487,13 +487,14 @@
       <div class="process-card reveal">
         <div class="process-circle">2</div>
         <h4>We confirm the details</h4>
-        <p>We'll walk through design, flavour, and delivery — orders need at least 2 days' notice.</p>
+        <p>We'll walk through design, flavour, and pickup timing — orders need at least 2 days' notice.</p>
       </div>
       <div class="process-card reveal">
         <div class="process-circle">3</div>
-        <h4>Delivered fresh</h4>
-        <p>Baked, decorated, and delivered right on time, ready to celebrate with.</p>
+        <h4>Ready for pickup</h4>
+        <p>Baked and decorated, ready right on time at our Chakri Road location.</p>
       </div>
+
     </div>
   </div>
 </section>
@@ -515,9 +516,9 @@
 
 
 <section class="area-section" id="area">
-  <div class="section-eyebrow reveal">Where we deliver</div>
+  <div class="section-eyebrow reveal">Where we serve</div>
   <div class="section-title reveal">Currently serving two cities</div>
-  <p class="reveal">SweetSlice is a home-based bakery, so for now we're keeping delivery close and reliable.</p>
+  <p class="reveal">SweetSlice is a home-based bakery — we don't offer delivery, so orders are picked up from our Chakri Road location. Book your own ride, or we can help arrange one (though we're not responsible once it leaves our hands).</p>
   <div class="area-pins reveal">
     <div class="area-pin">📍 Rawalpindi</div>
     <div class="area-pin">📍 Islamabad</div>
@@ -579,10 +580,10 @@
         <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#F4B8CC"/><path d="M32,66 L68,66 L50,30 Z" fill="#FFFDF9"/><path d="M32,66 Q50,78 68,66" fill="none" stroke="#C9B6E4" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="52" x2="58" y2="52" stroke="#EDA0BC" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="34" r="3.5" fill="#C9B6E4"/></svg>
         <span>SweetSlice</span>
       </div>
-      <p>Customized cakes and bento cakes, made with love — delivering within Rawalpindi and Islamabad.</p>
+      <p>Customized cakes and bento cakes, made with love — serving Rawalpindi and Islamabad, pickup only from Chakri Road.</p>
       <div class="pay-badges">
         <span class="pay-badge">Order via WhatsApp</span>
-        <span class="pay-badge">Cash on delivery</span>
+        <span class="pay-badge">Easypaisa</span>
       </div>
     </div>
     <div class="footer-col">
@@ -593,7 +594,7 @@
     </div>
     <div class="footer-col">
       <h5>Get in touch</h5>
-      <a href="https://wa.me/923469377256" target="_blank">WhatsApp us</a>
+      <a href="https://wa.me/923362225188" target="_blank">WhatsApp us</a>
       <p>Order at least 2 days in advance</p>
     </div>
   </div>
@@ -619,7 +620,28 @@
 </div>
 
 <script>
-  const WHATSAPP_NUMBER = "923469377256";
+  const WHATSAPP_NUMBER = "923362225188";
+  const AUTO_ORDER_MESSAGE = `✨ Custom Cake Order Form ✨
+Please reply with:
+Your Name:
+Contact:
+Cake Weight / Deal:
+Flavor:
+Reference Picture:
+Text:
+Date & Time:
+(timing 2pm-9pm)
+Location / Pin
+Receiver’s Name & Contact
+📍 Pickup: Chakri Road, Rawalpindi
+💬 Order is confirmed only after final total + advance payment.
+📲 Easypaisa: 03362225188 (Rameen Masood)
+Pls do follow my insta page @sweetslice_cakess
+⚠️ Please Note:
+• Wrong/missing info = not my responsibility.
+• Mention extra items (balloons, flowers, etc.) clearly.
+• Half payment is refunded on cancellations.
+• We don’t offer delivery. You may book your own ride from our location. If we help arrange one, responsibility is not ours after pickup.`;
 
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
@@ -776,10 +798,7 @@
     if (supabaseClient) {
       await supabaseClient.from('orders').insert({ items: cart, total: total, payment_method: 'whatsapp', status: 'pending' });
     }
-    let msg = "Hi SweetSlice! I'd like to place an order:%0A%0A";
-    cart.forEach(i => { msg += `${i.name} x${i.qty} - Rs. ${(i.price * i.qty).toLocaleString()}%0A`; });
-    msg += `%0ATotal: Rs. ${total.toLocaleString()}%0A%0AMy delivery address:%0AMy preferred date:`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(AUTO_ORDER_MESSAGE)}`, '_blank');
   }
 
   // ---- CUSTOM CAKE REQUEST ----
@@ -811,7 +830,6 @@
     const flavor = document.getElementById('c-flavor').value || 'Not provided';
     const details = document.getElementById('c-details').value || 'Not provided';
     const dateVal = document.getElementById('c-date').value;
-    const hasFile = document.getElementById('c-file').files.length > 0;
 
     if (dateVal) {
       const chosen = new Date(dateVal);
@@ -831,17 +849,8 @@
       });
     }
 
-    let msg = "Hi SweetSlice! I'd like a custom cake:%0A%0A";
-    msg += `Name: ${name}%0A`;
-    msg += `Phone: ${phone}%0A`;
-    msg += `Occasion: ${occasion}%0A`;
-    msg += `Size: ${size}%0A`;
-    msg += `Flavour: ${flavor}%0A`;
-    msg += `Needed by: ${dateVal || 'Not provided'}%0A`;
-    msg += `Details: ${details}%0A%0A`;
-    msg += hasFile
-      ? "I'm attaching a reference photo in this chat."
-      : "No reference photo, happy to discuss the design.";
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(AUTO_ORDER_MESSAGE)}`, '_blank');
+  }
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
   }
