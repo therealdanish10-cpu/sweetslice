@@ -328,7 +328,7 @@
   .custom-form{margin-top:40px;text-align:left;background:var(--white);border-radius:20px;padding:36px;box-shadow:0 10px 30px rgba(74,59,84,0.06);}
   .form-row{margin-bottom:18px;}
   .form-row label{display:block;font-size:12.5px;color:var(--plum);margin-bottom:6px;letter-spacing:0.3px;}
-  .form-row input[type=text], .form-row input[type=tel], .form-row input[type=date], .form-row textarea, .form-row select{
+  .form-row input[type=text], .form-row input[type=tel], .form-row input[type=date], .form-row input[type=time], .form-row textarea, .form-row select{
     width:100%;padding:11px 14px;border-radius:10px;border:1px solid #EADFE8;background:var(--cream);
     font-family:'Poppins',sans-serif;font-size:13.5px;color:var(--plum-dark);
   }
@@ -347,6 +347,14 @@
     font-size:14px;font-weight:500;cursor:pointer;margin-top:6px;
   }
   .custom-note{font-size:11.5px;color:var(--plum-light);margin-top:12px;text-align:center;}
+  .caution-box{
+    margin-top:26px;background:var(--pink-pale);border:1px solid var(--pink);border-radius:14px;
+    padding:20px 22px;
+  }
+  .caution-title{font-size:13.5px;font-weight:600;color:var(--plum-dark);margin-bottom:10px;}
+  .caution-box ul{margin:0 0 12px 18px;padding:0;}
+  .caution-box li{font-size:12.5px;color:var(--plum);line-height:1.7;margin-bottom:4px;}
+  .caution-footer{font-size:12px;color:var(--plum-dark);font-weight:500;line-height:1.7;border-top:1px solid rgba(74,59,84,0.1);padding-top:12px;}
   @media(max-width:600px){.form-grid-2{grid-template-columns:1fr;}}
 
   /* TESTIMONIAL */
@@ -532,28 +540,31 @@
     <div class="custom-form reveal">
       <div class="form-grid-2">
         <div class="form-row"><label>Your name</label><input type="text" id="c-name" placeholder="Full name"></div>
-        <div class="form-row"><label>Phone number</label><input type="tel" id="c-phone" placeholder="03XXXXXXXXX"></div>
+        <div class="form-row"><label>Contact</label><input type="tel" id="c-phone" placeholder="03XXXXXXXXX"></div>
       </div>
       <div class="form-grid-2">
         <div class="form-row"><label>Occasion</label><input type="text" id="c-occasion" placeholder="Birthday, anniversary…"></div>
-        <div class="form-row"><label>Size</label>
-          <select id="c-size">
-            <option value="Bento (single serve)">Bento (single serve)</option>
-            <option value="Small (4-6 people)">Small (4–6 people)</option>
-            <option value="Medium (8-12 people)">Medium (8–12 people)</option>
-            <option value="Large / Tiered (15+ people)">Large / Tiered (15+ people)</option>
-          </select>
-        </div>
+        <div class="form-row"><label>Cake weight / deal</label><input type="text" id="c-weight" placeholder="e.g. 1 pound, 2 pound, or ask about our deals"></div>
       </div>
       <div class="form-grid-2">
         <div class="form-row"><label>Flavour</label><input type="text" id="c-flavor" placeholder="Chocolate, red velvet…"></div>
+        <div class="form-row"><label>Text on the cake</label><input type="text" id="c-text" placeholder="What should we write on it? (leave blank for none)"></div>
+      </div>
+      <div class="form-row"><label>Tell us more</label><textarea id="c-details" placeholder="Colours, theme, design ideas, anything else"></textarea></div>
+      <div class="form-grid-2">
         <div class="form-row">
-          <label>Date you need it by</label>
+          <label>Date needed</label>
           <input type="date" id="c-date">
           <div class="date-hint" id="c-date-hint">Orders need at least 2 days' notice.</div>
         </div>
+        <div class="form-row">
+          <label>Time</label>
+          <input type="time" id="c-time" min="14:00" max="21:00">
+          <div class="date-hint">Pickup timing is 2pm–9pm.</div>
+        </div>
       </div>
-      <div class="form-row"><label>Tell us more</label><textarea id="c-details" placeholder="Colours, theme, message on the cake, anything else"></textarea></div>
+      <div class="form-row"><label>Location / pin</label><input type="text" id="c-location" placeholder="Your area, or share your pin once we're chatting"></div>
+      <div class="form-row"><label>Receiver's name &amp; contact</label><input type="text" id="c-receiver" placeholder="If picking up on someone else's behalf"></div>
       <div class="form-row">
         <label>Reference photo (optional)</label>
         <div class="file-drop" id="file-drop" onclick="document.getElementById('c-file').click()">
@@ -563,7 +574,18 @@
         <img class="file-preview" id="file-preview">
       </div>
       <button class="custom-submit" onclick="sendCustomRequest()">Send request on WhatsApp</button>
-      <div class="custom-note">This opens WhatsApp with your details filled in — if you attached a photo above, just attach it once more in the chat, since links can't carry the image itself.</div>
+      <div class="custom-note">This opens WhatsApp with everything above already filled in — if you attached a photo, just attach it once more in the chat, since links can't carry the image itself.</div>
+
+      <div class="caution-box">
+        <div class="caution-title">⚠️ Please note</div>
+        <ul>
+          <li>Wrong or missing info is not our responsibility.</li>
+          <li>Mention extra items (balloons, flowers, etc.) clearly.</li>
+          <li>Half payment is refunded on cancellations.</li>
+          <li>We don't offer delivery — you may book your own ride from our location. If we help arrange one, responsibility is not ours after pickup.</li>
+        </ul>
+        <div class="caution-footer">Order is confirmed only after final total + advance payment. 📲 Easypaisa: 03362225188 (Rameen Masood). 📍 Pickup: Chakri Road, Rawalpindi.</div>
+      </div>
     </div>
   </div>
 </section>
@@ -825,11 +847,16 @@ Pls do follow my insta page @sweetslice_cakess
   async function sendCustomRequest() {
     const name = document.getElementById('c-name').value || 'Not provided';
     const phone = document.getElementById('c-phone').value || 'Not provided';
-    const occasion = document.getElementById('c-occasion').value || 'Not provided';
-    const size = document.getElementById('c-size').value;
+    const weight = document.getElementById('c-weight').value || 'Not provided';
     const flavor = document.getElementById('c-flavor').value || 'Not provided';
-    const details = document.getElementById('c-details').value || 'Not provided';
+    const textOnCake = document.getElementById('c-text').value || 'None';
     const dateVal = document.getElementById('c-date').value;
+    const timeVal = document.getElementById('c-time').value;
+    const location = document.getElementById('c-location').value || 'Not provided';
+    const receiver = document.getElementById('c-receiver').value || 'Same as above';
+    const occasion = document.getElementById('c-occasion').value || 'Not provided';
+    const details = document.getElementById('c-details').value || 'Not provided';
+    const hasFile = document.getElementById('c-file').files.length > 0;
 
     if (dateVal) {
       const chosen = new Date(dateVal);
@@ -844,12 +871,39 @@ Pls do follow my insta page @sweetslice_cakess
 
     if (supabaseClient) {
       await supabaseClient.from('custom_requests').insert({
-        customer_name: name, phone, occasion, size, flavor, details,
+        customer_name: name, phone, occasion, size: weight, flavor, details,
         occasion_date: dateVal || null, status: 'pending'
       });
     }
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(AUTO_ORDER_MESSAGE)}`, '_blank');
+    const dateTimeStr = [dateVal || 'Not provided', timeVal ? `at ${timeVal}` : ''].filter(Boolean).join(' ');
+    const pictureStr = hasFile ? 'Attached in this chat' : 'None';
+
+    const filledMessage = `✨ Custom Cake Order Form ✨
+Your Name: ${name}
+Contact: ${phone}
+Occasion: ${occasion}
+Cake Weight / Deal: ${weight}
+Flavor: ${flavor}
+Reference Picture: ${pictureStr}
+Text: ${textOnCake}
+Date & Time: ${dateTimeStr}
+(timing 2pm-9pm)
+Location / Pin: ${location}
+Receiver's Name & Contact: ${receiver}
+Anything else: ${details}
+
+📍 Pickup: Chakri Road, Rawalpindi
+💬 Order is confirmed only after final total + advance payment.
+📲 Easypaisa: 03362225188 (Rameen Masood)
+Pls do follow my insta page @sweetslice_cakess
+⚠️ Please Note:
+• Wrong/missing info = not my responsibility.
+• Mention extra items (balloons, flowers, etc.) clearly.
+• Half payment is refunded on cancellations.
+• We don't offer delivery. You may book your own ride from our location. If we help arrange one, responsibility is not ours after pickup.`;
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(filledMessage)}`, '_blank');
   }
 
   // ---- GALLERY ----
