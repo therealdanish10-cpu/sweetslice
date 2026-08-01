@@ -157,7 +157,7 @@
       First time here? This panel uses Supabase Auth, so before it works you need to:<br>
       1. Fill in <code>SUPABASE_URL</code> / <code>SUPABASE_ANON_KEY</code> in this file (and in the main site file) with your project's values.<br>
       2. In Supabase Dashboard → Authentication → Users, create one user for yourself — that's the only account that can log in here.<br>
-      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, <code>custom_requests</code>, and <code>gallery</code> tables (ask me for the SQL any time).<br>
+      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, <code>custom_requests</code>, <code>gallery</code>, and <code>extras</code> tables (ask me for the SQL any time).<br>
       4. In Storage, create two Public buckets: <code>product-images</code> and <code>gallery-images</code>, so photos you upload here can show on the main site.
     </div>
   </div>
@@ -174,6 +174,7 @@
     <button class="tab-btn active" data-tab="products" onclick="setTab('products')">Cakes &amp; products</button>
     <button class="tab-btn" data-tab="reviews" onclick="setTab('reviews')">Reviews</button>
     <button class="tab-btn" data-tab="gallery" onclick="setTab('gallery')">Gallery</button>
+    <button class="tab-btn" data-tab="extras" onclick="setTab('extras')">Extras</button>
     <button class="tab-btn" data-tab="orders" onclick="setTab('orders')">Orders</button>
   </div>
 
@@ -251,6 +252,27 @@
       <div class="card-list" id="galleryList"></div>
     </section>
 
+    <!-- EXTRAS -->
+    <section class="panel" id="panel-extras">
+      <div class="form-card">
+        <div class="panel-head"><h2 id="extraFormTitle">Add an extra</h2></div>
+        <div class="form-grid">
+          <div><label>Name</label><input type="text" id="ex-name" placeholder="e.g. Candles, Balloons, Birthday topper"></div>
+          <div><label>Price (Rs.)</label><input type="number" id="ex-price" placeholder="200"></div>
+          <div><label>Show on site?</label>
+            <select id="ex-active"><option value="true">Yes</option><option value="false">No</option></select>
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:var(--plum-light);margin-top:6px;">Every active extra here shows up as an add-on option under every item in the shop.</div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn" style="width:auto;" onclick="saveExtra()">Save extra</button>
+          <button class="btn outline" style="width:auto;display:none;" id="cancelExtraEditBtn" onclick="cancelExtraEdit()">Cancel edit</button>
+        </div>
+      </div>
+      <div class="panel-head"><h2>All extras</h2></div>
+      <div class="card-list" id="extrasList"></div>
+    </section>
+
     <!-- ORDERS -->
     <section class="panel" id="panel-orders">
       <div class="panel-head"><h2>Recent orders</h2></div>
@@ -286,7 +308,7 @@
   function showApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    loadProducts(); loadReviews(); loadGallery(); loadOrders();
+    loadProducts(); loadReviews(); loadGallery(); loadExtras(); loadOrders();
   }
   checkSession();
 
@@ -484,6 +506,67 @@
     if (!confirm('Delete this photo?')) return;
     await supabaseClient.from('gallery').delete().eq('id', id);
     loadGallery();
+  }
+
+  // ---- EXTRAS ----
+  let editingExtraId = null;
+
+  async function loadExtras() {
+    const { data, error } = await supabaseClient.from('extras').select('*').order('created_at', { ascending: false });
+    const list = document.getElementById('extrasList');
+    if (error) { list.innerHTML = `<div class="empty-state">Couldn't load extras — check that the "extras" table exists.</div>`; return; }
+    if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state">No extras yet — add your first one above.</div>`; return; }
+    list.innerHTML = data.map(ex => `
+      <div class="item-card">
+        <div class="info">
+          <h4>${ex.name} — Rs. ${Number(ex.price).toLocaleString()}</h4>
+          <span class="badge ${ex.active ? 'active' : 'inactive'}">${ex.active ? 'Active' : 'Hidden'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick='editExtra(${JSON.stringify(ex).replace(/'/g, "&apos;")})'>Edit</button>
+          <button class="icon-btn del" onclick="deleteExtra('${ex.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function editExtra(ex) {
+    editingExtraId = ex.id;
+    document.getElementById('ex-name').value = ex.name;
+    document.getElementById('ex-price').value = ex.price;
+    document.getElementById('ex-active').value = String(ex.active);
+    document.getElementById('extraFormTitle').textContent = 'Edit extra';
+    document.getElementById('cancelExtraEditBtn').style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function cancelExtraEdit() {
+    editingExtraId = null;
+    document.getElementById('ex-name').value = '';
+    document.getElementById('ex-price').value = '';
+    document.getElementById('extraFormTitle').textContent = 'Add an extra';
+    document.getElementById('cancelExtraEditBtn').style.display = 'none';
+  }
+
+  async function saveExtra() {
+    const payload = {
+      name: document.getElementById('ex-name').value.trim(),
+      price: Number(document.getElementById('ex-price').value) || 0,
+      active: document.getElementById('ex-active').value === 'true'
+    };
+    if (!payload.name) return;
+    if (editingExtraId) {
+      const { error } = await supabaseClient.from('extras').update(payload).eq('id', editingExtraId);
+      if (error) { alert("Couldn't save the extra: " + error.message); return; }
+    } else {
+      const { error } = await supabaseClient.from('extras').insert(payload);
+      if (error) { alert("Couldn't save the extra: " + error.message); return; }
+    }
+    cancelExtraEdit();
+    loadExtras();
+  }
+  async function deleteExtra(id) {
+    if (!confirm('Delete this extra?')) return;
+    await supabaseClient.from('extras').delete().eq('id', id);
+    loadExtras();
   }
 
   // ---- ORDERS (read-only) ----

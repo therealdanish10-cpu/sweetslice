@@ -27,7 +27,7 @@
     --shadow-hover: 0 22px 48px rgba(45, 31, 51, 0.12);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
   body {
     font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
     background: var(--cream);
@@ -87,6 +87,34 @@
     background: linear-gradient(135deg, #3B2843 0%, var(--plum-dark) 100%);
   }
   @media(max-width:800px) { .nav-links { display: none; } }
+  @media(max-width:520px) { .nav-cta { display: none; } }
+
+  .mobile-menu-toggle{
+    display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;z-index:301;
+  }
+  .mobile-menu-toggle span{width:24px;height:1.5px;background:var(--plum-dark);transition:all .3s ease;}
+  .mobile-menu-toggle.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+  .mobile-menu-toggle.open span:nth-child(2){opacity:0;}
+  .mobile-menu-toggle.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+  @media(max-width:800px){ .mobile-menu-toggle{display:flex;} }
+
+  .mobile-nav-overlay{
+    position:fixed;inset:0;background:var(--plum-dark);z-index:290;
+    display:flex;align-items:center;justify-content:center;
+    clip-path:circle(0px at calc(100% - 40px) 40px);
+    transition:clip-path .5s cubic-bezier(.65,0,.35,1);
+  }
+  .mobile-nav-overlay.open{clip-path:circle(150% at calc(100% - 40px) 40px);}
+  .mobile-nav-links{text-align:center;}
+  .mobile-nav-links a{
+    display:block;font-family:'Playfair Display',serif;font-style:italic;font-weight:600;
+    font-size:clamp(26px,7vw,38px);color:var(--cream);padding:12px 0;
+  }
+  .mobile-nav-links .mobile-wa-cta{
+    display:inline-block;margin-top:24px;background:var(--pink);color:var(--plum-dark);
+    padding:13px 30px;border-radius:30px;font-family:'Poppins',sans-serif;font-style:normal;
+    font-size:14px;font-weight:500;
+  }
 
   /* HERO */
   .hero {
@@ -242,6 +270,11 @@
     background: linear-gradient(135deg, #3B2843 0%, var(--plum-dark) 100%);
   }
   .add-cart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .extras-list{text-align:left;background:var(--pink-pale);border-radius:12px;padding:12px 14px;margin-bottom:14px;}
+  .extras-label{font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--pink-deep);margin-bottom:8px;}
+  .extra-item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--plum-dark);padding:4px 0;cursor:pointer;}
+  .extra-item input{accent-color:var(--plum-dark);width:15px;height:15px;cursor:pointer;}
+  .extra-item em{color:var(--plum-light);font-style:normal;}
   @media(max-width:900px) { .product-grid { grid-template-columns: 1fr; } }
 
   /* HOW IT WORKS — simple 3 step, not pinned */
@@ -384,10 +417,11 @@
   .cart-drawer h3{font-family:'Playfair Display',serif;font-style:italic;font-size:22px;color:var(--plum-dark);margin-bottom:20px;}
   .cart-close{position:absolute;top:24px;right:22px;font-size:18px;cursor:pointer;color:var(--plum);}
   .cart-items{flex:1;overflow-y:auto;}
-  .cart-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--pink-pale);font-size:13.5px;}
+  .cart-item{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--pink-pale);font-size:13.5px;gap:10px;}
   .cart-item .item-name{color:var(--plum-dark);font-weight:500;}
   .cart-item .item-meta{color:var(--plum-light);font-size:12px;}
-  .cart-remove{color:var(--pink-deep);cursor:pointer;font-size:12px;}
+  .cart-item .item-extras{color:var(--pink-deep);font-size:11.5px;margin-top:2px;}
+  .cart-remove{color:var(--pink-deep);cursor:pointer;font-size:12px;white-space:nowrap;}
   .cart-empty{color:var(--plum-light);font-size:13px;text-align:center;padding:40px 0;}
   .cart-total{display:flex;justify-content:space-between;padding:18px 0;font-size:15px;font-weight:500;color:var(--plum-dark);border-top:1px solid var(--pink-pale);}
   .cart-actions{display:flex;flex-direction:column;gap:10px;}
@@ -410,7 +444,21 @@
     <a href="#contact">Contact</a>
   </div>
   <a class="nav-cta" href="https://wa.me/923362225188" target="_blank">Order on WhatsApp</a>
+  <div class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+    <span></span><span></span><span></span>
+  </div>
 </nav>
+
+<div class="mobile-nav-overlay" id="mobileNavOverlay">
+  <div class="mobile-nav-links">
+    <a href="#shop" onclick="toggleMobileMenu()">Shop</a>
+    <a href="#customize" onclick="toggleMobileMenu()">Customize</a>
+    <a href="#assembly" onclick="toggleMobileMenu()">How it's made</a>
+    <a href="#gallery" onclick="toggleMobileMenu()">Gallery</a>
+    <a href="#contact" onclick="toggleMobileMenu()">Contact</a>
+    <a class="mobile-wa-cta" href="https://wa.me/923362225188" target="_blank">Order on WhatsApp</a>
+  </div>
+</div>
 
 <section class="hero">
   <div class="hero-bg">
@@ -643,30 +691,14 @@
 
 <script>
   const WHATSAPP_NUMBER = "923362225188";
-  const AUTO_ORDER_MESSAGE = `✨ Custom Cake Order Form ✨
-Please reply with:
-Your Name:
-Contact:
-Cake Weight / Deal:
-Flavor:
-Reference Picture:
-Text:
-Date & Time:
-(timing 2pm-9pm)
-Location / Pin
-Receiver’s Name & Contact
-📍 Pickup: Chakri Road, Rawalpindi
-💬 Order is confirmed only after final total + advance payment.
-📲 Easypaisa: 03362225188 (Rameen Masood)
-Pls do follow my insta page @sweetslice_cakess
-⚠️ Please Note:
-• Wrong/missing info = not my responsibility.
-• Mention extra items (balloons, flowers, etc.) clearly.
-• Half payment is refunded on cancellations.
-• We don’t offer delivery. You may book your own ride from our location. If we help arrange one, responsibility is not ours after pickup.`;
 
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
+
+  function toggleMobileMenu() {
+    document.getElementById('mobileMenuToggle').classList.toggle('open');
+    document.getElementById('mobileNavOverlay').classList.toggle('open');
+  }
 
   const revealEls = document.querySelectorAll('.reveal');
   const revealObserver = new IntersectionObserver((entries) => {
@@ -723,16 +755,27 @@ Pls do follow my insta page @sweetslice_cakess
   const CATEGORY_LABELS = { cakes: "Cakes", cupcakes: "Cupcakes", pastries: "Pastries", brownies: "Brownies" };
   let activeCategory = 'cakes';
 
+  // ---- EXTRAS ----
+  let EXTRAS = [];
+  async function loadExtras() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('extras').select('*').eq('active', true).order('created_at', { ascending: true });
+    if (error || !data) return;
+    EXTRAS = data;
+    renderProducts(); // re-render so cards pick up the loaded extras
+  }
+
   async function loadProducts() {
-    if (!supabaseClient) { renderTabs(); renderProducts(); return; }
+    if (!supabaseClient) { renderTabs(); renderProducts(); loadExtras(); return; }
     const { data, error } = await supabaseClient.from('products').select('*').eq('active', true);
-    if (error || !data || data.length === 0) { renderTabs(); renderProducts(); return; }
+    if (error || !data || data.length === 0) { renderTabs(); renderProducts(); loadExtras(); return; }
     const grouped = { cakes: [], cupcakes: [], pastries: [], brownies: [] };
     data.forEach(p => {
       if (grouped[p.category]) grouped[p.category].push({ name: p.name, price: p.price, description: p.description, icon: p.icon || 'a', image_url: p.image_url || null });
     });
     PRODUCTS = grouped;
     renderTabs(); renderProducts();
+    loadExtras();
   }
 
   function productIcon(kind) {
@@ -760,6 +803,16 @@ Pls do follow my insta page @sweetslice_cakess
           <span class="qty-val">1</span>
           <button class="qty-btn" onclick="changeQty(this,1)">+</button>
         </div>
+        ${EXTRAS.length > 0 ? `
+        <div class="extras-list">
+          <div class="extras-label">Add extras</div>
+          ${EXTRAS.map(e => `
+            <label class="extra-item">
+              <input type="checkbox" class="extra-check" data-name="${e.name}" data-price="${e.price}">
+              <span>${e.name}${e.price > 0 ? ` <em>+Rs. ${e.price.toLocaleString()}</em>` : ''}</span>
+            </label>
+          `).join('')}
+        </div>` : ''}
         <button class="add-cart-btn" onclick="addToCart(this)" ${p.price === 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>${p.price === 0 ? 'Coming soon' : 'Add to cart'}</button>
       </div>
     `).join('');
@@ -777,13 +830,23 @@ Pls do follow my insta page @sweetslice_cakess
     const name = card.getAttribute('data-name');
     const price = parseInt(card.getAttribute('data-price'));
     const qty = parseInt(card.querySelector('.qty-val').textContent);
-    const existing = cart.find(i => i.name === name);
-    if (existing) { existing.qty += qty; } else { cart.push({ name, price, qty }); }
+    const selectedExtras = [...card.querySelectorAll('.extra-check:checked')].map(cb => ({
+      name: cb.getAttribute('data-name'),
+      price: parseInt(cb.getAttribute('data-price'))
+    }));
+    const extrasSignature = selectedExtras.map(e => e.name).sort().join('|');
+    const existing = cart.find(i => i.name === name && (i.extras || []).map(e => e.name).sort().join('|') === extrasSignature);
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({ name, price, qty, extras: selectedExtras });
+    }
     card.querySelector('.qty-val').textContent = '1';
+    card.querySelectorAll('.extra-check:checked').forEach(cb => cb.checked = false);
     renderCart();
     toggleCart(true);
   }
-  function removeFromCart(name) { cart = cart.filter(i => i.name !== name); renderCart(); }
+  function removeFromCart(index) { cart.splice(index, 1); renderCart(); }
 
   function renderCart() {
     const itemsEl = document.getElementById('cart-items');
@@ -798,12 +861,25 @@ Pls do follow my insta page @sweetslice_cakess
       totalEl.style.display = 'none'; actionsEl.style.display = 'none'; countEl.style.display = 'none';
       return;
     }
-    itemsEl.innerHTML = cart.map(i => `
+    itemsEl.innerHTML = cart.map((i, idx) => {
+      const extrasTotal = (i.extras || []).reduce((s, e) => s + e.price, 0);
+      const lineTotal = (i.price + extrasTotal) * i.qty;
+      const extrasNames = (i.extras || []).map(e => e.name).join(', ');
+      return `
       <div class="cart-item">
-        <div><div class="item-name">${i.name}</div><div class="item-meta">Qty ${i.qty} × Rs. ${i.price.toLocaleString()}</div></div>
-        <span class="cart-remove" onclick="removeFromCart('${i.name}')">Remove</span>
-      </div>`).join('');
-    const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
+        <div>
+          <div class="item-name">${i.name}</div>
+          <div class="item-meta">Qty ${i.qty} × Rs. ${i.price.toLocaleString()}${extrasTotal > 0 ? ` + extras Rs. ${extrasTotal.toLocaleString()}` : ''}</div>
+          ${extrasNames ? `<div class="item-extras">+ ${extrasNames}</div>` : ''}
+          <div class="item-meta" style="font-weight:500;color:var(--plum-dark);">Rs. ${lineTotal.toLocaleString()}</div>
+        </div>
+        <span class="cart-remove" onclick="removeFromCart(${idx})">Remove</span>
+      </div>`;
+    }).join('');
+    const total = cart.reduce((s, i) => {
+      const extrasTotal = (i.extras || []).reduce((es, e) => es + e.price, 0);
+      return s + (i.price + extrasTotal) * i.qty;
+    }, 0);
     totalAmt.textContent = `Rs. ${total.toLocaleString()}`;
     totalEl.style.display = 'flex'; actionsEl.style.display = 'flex'; countEl.style.display = 'flex';
     countEl.textContent = totalCount;
@@ -816,11 +892,39 @@ Pls do follow my insta page @sweetslice_cakess
 
   async function checkoutWhatsApp() {
     if (cart.length === 0) return;
-    const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
+    const total = cart.reduce((s, i) => {
+      const extrasTotal = (i.extras || []).reduce((es, e) => es + e.price, 0);
+      return s + (i.price + extrasTotal) * i.qty;
+    }, 0);
     if (supabaseClient) {
       await supabaseClient.from('orders').insert({ items: cart, total: total, payment_method: 'whatsapp', status: 'pending' });
     }
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(AUTO_ORDER_MESSAGE)}`, '_blank');
+
+    const itemLines = cart.map(i => {
+      const extrasTotal = (i.extras || []).reduce((s, e) => s + e.price, 0);
+      const lineTotal = (i.price + extrasTotal) * i.qty;
+      const extrasNames = (i.extras || []).map(e => e.name).join(', ');
+      return `• ${i.name} x${i.qty}${extrasNames ? ` (extras: ${extrasNames})` : ''} — Rs. ${lineTotal.toLocaleString()}`;
+    }).join('\n');
+
+    const filledMessage = `✨ SweetSlice Order ✨
+${itemLines}
+
+Total: Rs. ${total.toLocaleString()}
+
+My delivery/pickup date:
+My preferred time:
+
+📍 Pickup: Chakri Road, Rawalpindi
+💬 Order is confirmed only after final total + advance payment.
+📲 Easypaisa: 03362225188 (Rameen Masood)
+Pls do follow my insta page @sweetslice_cakess
+⚠️ Please Note:
+• Wrong/missing info = not my responsibility.
+• Half payment is refunded on cancellations.
+• We don't offer delivery. You may book your own ride from our location. If we help arrange one, responsibility is not ours after pickup.`;
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(filledMessage)}`, '_blank');
   }
 
   // ---- CUSTOM CAKE REQUEST ----
