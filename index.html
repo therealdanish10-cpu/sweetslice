@@ -53,18 +53,13 @@
     box-shadow: 0 4px 30px rgba(45, 31, 51, 0.06);
     border-bottom: 1px solid var(--glass-border);
   }
-  .nav-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-  .nav-logo svg {
-    width: 40px; height: 40px;
+  .nav-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
+  .nav-logo img {
+    height: 40px; width: auto;
     filter: drop-shadow(0 4px 10px rgba(229, 138, 165, 0.3));
     transition: transform .3s ease;
   }
-  .nav-logo:hover svg { transform: rotate(-6deg) scale(1.05); }
-  .nav-logo span {
-    font-family: 'Playfair Display', serif;
-    font-style: italic; font-weight: 600; font-size: 21px;
-    color: var(--plum-dark); letter-spacing: -0.3px;
-  }
+  .nav-logo:hover img { transform: rotate(-3deg) scale(1.05); }
   .nav-links { display: flex; gap: 36px; font-size: 14px; font-weight: 500; color: var(--plum); }
   .nav-links a { position: relative; padding-bottom: 4px; transition: color .3s ease; }
   .nav-links a:hover { color: var(--plum-dark); }
@@ -399,7 +394,6 @@
   footer{background:var(--plum-dark);color:var(--cream);padding:80px 8% 30px;}
   .footer-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:50px;max-width:1100px;margin:0 auto 60px;}
   .footer-brand{max-width:300px;}
-  .footer-brand .nav-logo span{color:var(--cream);}
   .footer-brand p{font-size:13px;color:#D9CEE0;margin-top:14px;line-height:1.8;}
   .footer-col h5{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#D9CEE0;margin-bottom:16px;}
   .footer-col a, .footer-col p{display:block;font-size:13.5px;color:#EDE5F2;margin-bottom:10px;}
@@ -432,10 +426,9 @@
 <body>
 
 <nav id="nav">
-  <div class="nav-logo">
-    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#F4B8CC"/><path d="M32,66 L68,66 L50,30 Z" fill="#FFFDF9"/><path d="M32,66 Q50,78 68,66" fill="none" stroke="#C9B6E4" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="52" x2="58" y2="52" stroke="#EDA0BC" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="34" r="3.5" fill="#C9B6E4"/></svg>
-    <span>SweetSlice</span>
-  </div>
+  <a class="nav-logo" href="index.html">
+    <img src="logo.png" alt="SweetSlice">
+  </a>
   <div class="nav-links">
     <a href="#shop">Shop</a>
     <a href="#customize">Customize</a>
@@ -646,10 +639,9 @@
 <footer id="contact">
   <div class="footer-top">
     <div class="footer-brand">
-      <div class="nav-logo">
-        <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#F4B8CC"/><path d="M32,66 L68,66 L50,30 Z" fill="#FFFDF9"/><path d="M32,66 Q50,78 68,66" fill="none" stroke="#C9B6E4" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="52" x2="58" y2="52" stroke="#EDA0BC" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="34" r="3.5" fill="#C9B6E4"/></svg>
-        <span>SweetSlice</span>
-      </div>
+      <a class="nav-logo" href="index.html">
+        <img src="logo-footer.png" alt="SweetSlice">
+      </a>
       <p>Customized cakes and bento cakes, made with love — serving Rawalpindi and Islamabad, pickup only from Chakri Road.</p>
       <div class="pay-badges">
         <span class="pay-badge">Order via WhatsApp</span>
