@@ -574,7 +574,7 @@
         <img class="file-preview" id="file-preview">
       </div>
       <button class="custom-submit" onclick="sendCustomRequest()">Send request on WhatsApp</button>
-      <div class="custom-note">This opens WhatsApp with everything above already filled in — if you attached a photo, just attach it once more in the chat, since links can't carry the image itself.</div>
+      <div class="custom-note">This opens WhatsApp with everything above already filled in — if you added a reference photo, a link to it is included automatically so it's there even if you don't attach it again.</div>
 
       <div class="caution-box">
         <div class="caution-title">⚠️ Please note</div>
@@ -869,15 +869,29 @@ Pls do follow my insta page @sweetslice_cakess
       }
     }
 
+    // Reference photo: wa.me links can't attach a file, so upload it and
+    // send a direct link instead — that way the photo arrives even if the
+    // customer forgets to attach it again once WhatsApp opens.
+    let photoUrl = null;
+    if (hasFile && supabaseClient) {
+      const file = document.getElementById('c-file').files[0];
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabaseClient.storage.from('custom-request-photos').upload(fileName, file);
+      if (!uploadError) {
+        const { data: urlData } = supabaseClient.storage.from('custom-request-photos').getPublicUrl(fileName);
+        photoUrl = urlData.publicUrl;
+      }
+    }
+
     if (supabaseClient) {
       await supabaseClient.from('custom_requests').insert({
         customer_name: name, phone, occasion, size: weight, flavor, details,
-        occasion_date: dateVal || null, status: 'pending'
+        occasion_date: dateVal || null, status: 'pending', reference_photo_url: photoUrl
       });
     }
 
     const dateTimeStr = [dateVal || 'Not provided', timeVal ? `at ${timeVal}` : ''].filter(Boolean).join(' ');
-    const pictureStr = hasFile ? 'Attached in this chat' : 'None';
+    const pictureStr = photoUrl ? photoUrl : (hasFile ? 'Photo selected but upload failed — I\'ll attach it in this chat.' : 'None');
 
     const filledMessage = `✨ Custom Cake Order Form ✨
 Your Name: ${name}
