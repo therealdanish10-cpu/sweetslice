@@ -14,7 +14,28 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SweetSlice | Handcrafted Cakes</title>
+<title>SweetSlice | Handcrafted Cakes in Rawalpindi &amp; Islamabad</title>
+<meta name="description" content="Handcrafted custom cakes and bento cakes in Rawalpindi &amp; Islamabad. Order birthday cakes, anniversary cakes, and cupcakes on WhatsApp — pickup from Chakri Road, Rawalpindi.">
+<meta name="keywords" content="cakes Rawalpindi, cakes Islamabad, custom cakes Pakistan, bento cake, birthday cake Rawalpindi, home bakery Rawalpindi, SweetSlice">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sweetslice-psi.vercel.app/">
+
+<!-- Open Graph / WhatsApp / Facebook link previews -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="SweetSlice | Handcrafted Cakes in Rawalpindi &amp; Islamabad">
+<meta property="og:description" content="Handcrafted custom cakes and bento cakes, made to order. Pickup from Chakri Road, Rawalpindi — order on WhatsApp.">
+<meta property="og:image" content="https://sweetslice-psi.vercel.app/apple-touch-icon.png">
+<meta property="og:url" content="https://sweetslice-psi.vercel.app/">
+<meta property="og:locale" content="en_PK">
+<meta property="og:site_name" content="SweetSlice">
+
+<!-- Twitter card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SweetSlice | Handcrafted Cakes in Rawalpindi &amp; Islamabad">
+<meta name="twitter:description" content="Handcrafted custom cakes and bento cakes, made to order. Order on WhatsApp.">
+<meta name="twitter:image" content="https://sweetslice-psi.vercel.app/apple-touch-icon.png">
+
+<meta name="theme-color" content="#481B41">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -444,6 +465,31 @@
   .cart-btn{width:100%;border:none;padding:14px;border-radius:26px;font-size:13.5px;font-weight:500;cursor:pointer;}
   .cart-btn.wa{background:#25D366;color:#fff;}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Bakery",
+  "name": "SweetSlice",
+  "image": "https://sweetslice-psi.vercel.app/apple-touch-icon.png",
+  "url": "https://sweetslice-psi.vercel.app/",
+  "telephone": "+923362225188",
+  "priceRange": "Rs. 1,500 - Rs. 4,500",
+  "servesCuisine": "Bakery",
+  "areaServed": [
+    { "@type": "City", "name": "Rawalpindi" },
+    { "@type": "City", "name": "Islamabad" }
+  ],
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Chakri Road",
+    "addressLocality": "Rawalpindi",
+    "addressCountry": "PK"
+  },
+  "sameAs": [
+    "https://www.instagram.com/sweetslice_cakess"
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -808,7 +854,7 @@
   function renderProducts() {
     document.getElementById('product-grid').innerHTML = (PRODUCTS[activeCategory] || []).map(p => `
       <div class="product-card reveal in" data-name="${p.name}" data-price="${p.price}">
-        ${p.image_url ? `<img src="${p.image_url}" class="product-visual" style="object-fit:cover;border-radius:50%;">` : productIcon(p.icon)}
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="product-visual" style="object-fit:cover;border-radius:50%;">` : productIcon(p.icon)}
         <h4>${p.name}</h4>
         <div class="desc">${p.description}</div>
         <div class="price">${p.price > 0 ? 'Rs. ' + p.price.toLocaleString() : 'Price on request'}</div>
