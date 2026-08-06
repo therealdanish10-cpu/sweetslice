@@ -341,9 +341,10 @@
   .astep p{font-size:14.5px;color:var(--plum);line-height:1.8;max-width:400px;}
   @media(max-width:850px){
     .assembly{flex-direction:column;gap:0;}
-    .assembly-visual{position:sticky;top:80px;height:42vh;}
-    .assembly-stage{width:200px;height:250px;transform:scale(0.85);}
-    .astep{min-height:65vh;padding:20px 0;}
+    .assembly-visual{position:sticky;top:80px;height:42vh;overflow:hidden;transition:opacity .25s ease;}
+    .assembly-stage{transform:scale(0.72);}
+    .astep{min-height:65vh;padding:20px 0;opacity:1;}
+    .assembly-steps{padding-bottom:20vh;}
   }
 
   /* CUSTOM CAKE REQUEST */
@@ -569,24 +570,32 @@
   </div>
   <div class="assembly-steps">
     <div class="astep active" data-step="1">
-      <div class="tag">Step one</div>
+      <div class="astep-inner">
+        <div class="tag">Step one</div>
       <h3>You send us the idea</h3>
       <p>A message on WhatsApp is enough — a photo, a colour, an occasion, or just "surprise me."</p>
+      </div>
     </div>
     <div class="astep" data-step="2">
-      <div class="tag">Step two</div>
+      <div class="astep-inner">
+        <div class="tag">Step two</div>
       <h3>We build the base</h3>
       <p>Flavour, size and structure get locked in first — this is where the cake actually gets planned.</p>
+      </div>
     </div>
     <div class="astep" data-step="3">
-      <div class="tag">Step three</div>
+      <div class="astep-inner">
+        <div class="tag">Step three</div>
       <h3>Then the detail work</h3>
       <p>Piping, colour, texture — the part that makes it look like it was made for one person.</p>
+      </div>
     </div>
     <div class="astep" data-step="4">
-      <div class="tag">Step four</div>
+      <div class="astep-inner">
+        <div class="tag">Step four</div>
       <h3>Ready for pickup</h3>
       <p>Baked and decorated, ready right on time at our Chakri Road location — book your own ride, or let us help arrange one.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -790,6 +799,36 @@
     });
   }, { threshold: 0.5 });
   asteps.forEach(s => assemblyObserver.observe(s));
+
+  // On mobile, the cake stays pinned in place while each step's text
+  // scrolls up through the same screen area. Rather than a constant fade,
+  // fade the cake only for the moments the text is actually passing over
+  // it, and bring it back to full clarity the rest of the time (including
+  // once the last step has scrolled past, so the finished cake ends clear).
+  const assemblyVisual = document.querySelector('.assembly-visual');
+  let assemblyFadeTicking = false;
+  function updateAssemblyFade() {
+    assemblyFadeTicking = false;
+    if (!assemblyVisual) return;
+    if (window.innerWidth > 850) { assemblyVisual.style.opacity = ''; return; }
+    const visualRect = assemblyVisual.getBoundingClientRect();
+    let overlapping = false;
+    document.querySelectorAll('.astep-inner').forEach(inner => {
+      const r = inner.getBoundingClientRect();
+      if (r.bottom > visualRect.top && r.top < visualRect.bottom) {
+        overlapping = true;
+      }
+    });
+    assemblyVisual.style.opacity = overlapping ? '0.12' : '1';
+  }
+  window.addEventListener('scroll', () => {
+    if (!assemblyFadeTicking) {
+      assemblyFadeTicking = true;
+      requestAnimationFrame(updateAssemblyFade);
+    }
+  });
+  window.addEventListener('resize', updateAssemblyFade);
+  updateAssemblyFade();
 
   // ---- SUPABASE SETUP ----
   // Fill these in from Supabase Dashboard > Project Settings > API. The same
