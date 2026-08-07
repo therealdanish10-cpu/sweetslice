@@ -96,6 +96,13 @@
     box-shadow: 0 4px 30px rgba(var(--shadow-rgb), 0.06);
     border-bottom: 1px solid var(--glass-border);
   }
+  nav.menu-open {
+    background: var(--ink) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-bottom: none !important;
+  }
   .nav-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; }
   .nav-logo img {
     height: 40px; width: auto;
@@ -467,6 +474,22 @@
   .cart-actions{display:flex;flex-direction:column;gap:10px;}
   .cart-btn{width:100%;border:none;padding:14px;border-radius:26px;font-size:13.5px;font-weight:500;cursor:pointer;}
   .cart-btn.wa{background:#25D366;color:#fff;}
+
+  /* ALERT BANNER */
+  .alert-banner{
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;
+    background:linear-gradient(90deg, var(--pink-deep), var(--pink));
+    color:var(--white);font-size:13px;font-weight:600;letter-spacing:0.2px;
+    padding:12px 20px;border-radius:16px;margin-bottom:26px;max-width:640px;
+    box-shadow:0 8px 24px rgba(var(--pink-deep-rgb),0.3);
+    animation:alertPulse 2.6s ease-in-out infinite;
+  }
+  .alert-banner .alert-dot{width:8px;height:8px;border-radius:50%;background:var(--white);flex-shrink:0;}
+  @keyframes alertPulse{
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  @media(max-width:600px){ .alert-banner{font-size:12px;padding:10px 16px;} }
 </style>
 <script type="application/ld+json">
 {
@@ -531,6 +554,7 @@
     <div class="hero-blob hb3"></div>
     <div class="hero-blob hb4"></div>
   </div>
+  <div id="alert-banners"></div>
   <div class="eyebrow reveal in">Handcrafted, made to order</div>
   <h1 class="reveal in">Cakes made for one person, one moment</h1>
   <p class="reveal in">Custom cakes and bento cakes for birthdays, weddings, and everything in between.</p>
@@ -774,6 +798,7 @@
   function toggleMobileMenu() {
     document.getElementById('mobileMenuToggle').classList.toggle('open');
     document.getElementById('mobileNavOverlay').classList.toggle('open');
+    document.getElementById('nav').classList.toggle('menu-open');
   }
 
   const revealEls = document.querySelectorAll('.reveal');
@@ -1161,6 +1186,18 @@ Pls do follow my insta page @sweetslice_cakess
   }
 
   loadGallery();
+
+  // ---- ALERTS ----
+  async function loadAlerts() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('alerts').select('*').eq('active', true).order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) return;
+    const container = document.getElementById('alert-banners');
+    container.innerHTML = data.map(al => `
+      <div class="alert-banner"><span class="alert-dot"></span>${al.message}</div>
+    `).join('');
+  }
+  loadAlerts();
 
   // ---- TESTIMONIALS ----
   async function loadTestimonial() {

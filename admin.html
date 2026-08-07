@@ -162,7 +162,7 @@
       First time here? This panel uses Supabase Auth, so before it works you need to:<br>
       1. Fill in <code>SUPABASE_URL</code> / <code>SUPABASE_ANON_KEY</code> in this file (and in the main site file) with your project's values.<br>
       2. In Supabase Dashboard → Authentication → Users, create one user for yourself — that's the only account that can log in here.<br>
-      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, <code>custom_requests</code>, <code>gallery</code>, and <code>extras</code> tables (ask me for the SQL any time).<br>
+      3. Create the <code>products</code>, <code>reviews</code>, <code>orders</code>, <code>custom_requests</code>, <code>gallery</code>, <code>extras</code>, and <code>alerts</code> tables (ask me for the SQL any time).<br>
       4. In Storage, create two Public buckets: <code>product-images</code> and <code>gallery-images</code>, so photos you upload here can show on the main site.
     </div>
   </div>
@@ -180,6 +180,7 @@
     <button class="tab-btn" data-tab="reviews" onclick="setTab('reviews')">Reviews</button>
     <button class="tab-btn" data-tab="gallery" onclick="setTab('gallery')">Gallery</button>
     <button class="tab-btn" data-tab="extras" onclick="setTab('extras')">Extras</button>
+    <button class="tab-btn" data-tab="alerts" onclick="setTab('alerts')">Alerts</button>
     <button class="tab-btn" data-tab="orders" onclick="setTab('orders')">Orders</button>
   </div>
 
@@ -278,6 +279,26 @@
       <div class="card-list" id="extrasList"></div>
     </section>
 
+    <!-- ALERTS -->
+    <section class="panel" id="panel-alerts">
+      <div class="form-card">
+        <div class="panel-head"><h2 id="alertFormTitle">Add an alert</h2></div>
+        <div class="form-grid">
+          <div class="full"><label>Message</label><input type="text" id="al-message" placeholder="e.g. Closed for 3 days from Aug 10, or Not available between 6pm-8pm"></div>
+          <div><label>Show on site?</label>
+            <select id="al-active"><option value="true">Yes</option><option value="false">No</option></select>
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:var(--plum-light);margin-top:6px;">Active alerts show as a slow-blinking banner at the top of the site's hero section. Turn one off instead of deleting it if you'll reuse the same message later.</div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn" style="width:auto;" onclick="saveAlert()">Save alert</button>
+          <button class="btn outline" style="width:auto;display:none;" id="cancelAlertEditBtn" onclick="cancelAlertEdit()">Cancel edit</button>
+        </div>
+      </div>
+      <div class="panel-head"><h2>All alerts</h2></div>
+      <div class="card-list" id="alertsList"></div>
+    </section>
+
     <!-- ORDERS -->
     <section class="panel" id="panel-orders">
       <div class="panel-head"><h2>Recent orders</h2></div>
@@ -313,7 +334,7 @@
   function showApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    loadProducts(); loadReviews(); loadGallery(); loadExtras(); loadOrders();
+    loadProducts(); loadReviews(); loadGallery(); loadExtras(); loadAlerts(); loadOrders();
   }
   checkSession();
 
@@ -572,6 +593,64 @@
     if (!confirm('Delete this extra?')) return;
     await supabaseClient.from('extras').delete().eq('id', id);
     loadExtras();
+  }
+
+  // ---- ALERTS ----
+  let editingAlertId = null;
+
+  async function loadAlerts() {
+    const { data, error } = await supabaseClient.from('alerts').select('*').order('created_at', { ascending: false });
+    const list = document.getElementById('alertsList');
+    if (error) { list.innerHTML = `<div class="empty-state">Couldn't load alerts — check that the "alerts" table exists.</div>`; return; }
+    if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state">No alerts yet — add one above.</div>`; return; }
+    list.innerHTML = data.map(al => `
+      <div class="item-card">
+        <div class="info">
+          <h4>${al.message}</h4>
+          <span class="badge ${al.active ? 'active' : 'inactive'}">${al.active ? 'Showing on site' : 'Hidden'}</span>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn" onclick='editAlert(${JSON.stringify(al).replace(/'/g, "&apos;")})'>Edit</button>
+          <button class="icon-btn del" onclick="deleteAlert('${al.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function editAlert(al) {
+    editingAlertId = al.id;
+    document.getElementById('al-message').value = al.message;
+    document.getElementById('al-active').value = String(al.active);
+    document.getElementById('alertFormTitle').textContent = 'Edit alert';
+    document.getElementById('cancelAlertEditBtn').style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function cancelAlertEdit() {
+    editingAlertId = null;
+    document.getElementById('al-message').value = '';
+    document.getElementById('alertFormTitle').textContent = 'Add an alert';
+    document.getElementById('cancelAlertEditBtn').style.display = 'none';
+  }
+
+  async function saveAlert() {
+    const payload = {
+      message: document.getElementById('al-message').value.trim(),
+      active: document.getElementById('al-active').value === 'true'
+    };
+    if (!payload.message) return;
+    if (editingAlertId) {
+      const { error } = await supabaseClient.from('alerts').update(payload).eq('id', editingAlertId);
+      if (error) { alert("Couldn't save the alert: " + error.message); return; }
+    } else {
+      const { error } = await supabaseClient.from('alerts').insert(payload);
+      if (error) { alert("Couldn't save the alert: " + error.message); return; }
+    }
+    cancelAlertEdit();
+    loadAlerts();
+  }
+  async function deleteAlert(id) {
+    if (!confirm('Delete this alert?')) return;
+    await supabaseClient.from('alerts').delete().eq('id', id);
+    loadAlerts();
   }
 
   // ---- ORDERS (read-only) ----
